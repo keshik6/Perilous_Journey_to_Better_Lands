@@ -365,7 +365,7 @@ ggmap(worldMap, base_layer=ggraph(subGraph, layout='auto')) +
 ```
 
 Now to obtain multiple plots, we can use a for loop to change the filtered country every iteration.
-We also make use of ggsave to save our plots. You can find all the plots at ...url.These sankey diagrams are shown in the poster as well
+We also make use of ggsave to save our plots. You can find all the plots at https://github.com/keshik6/Perilous_Journey_to_Better_Lands .These sankey diagrams are shown in the poster as well
 ```{r warning=FALSE, message=FALSE}
 # This loop will create the sankey diagrams without the underlying spatial layer. The code for this is included as a reference only. The proper final plots will be created in the following part and saved.
 for (i in arrangedNodes$Country) {
