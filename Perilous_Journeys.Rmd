@@ -12,12 +12,12 @@ output:
 People around the world are constantly trying to better their lives, with many far more fortunate than refugees, those forced to escape their homelands to avoid conflict, persecution or natural disaster. In a bid to flee these dire conditions, they inevitably travel using untrodden and dangerous routes, leading to many deaths. By looking at how migrant flows, as well as major points at which many deaths occur, are affected by the incident that precipitated the outward migration from the region and other contemporaneous events, it is hoped that future migrant flows can be predicted. By knowing where people will go, and where they are most likely to run into resistance or danger, aid agencies may be better equipped to deal with migrant crises around the world, giving these refugees a shot at a better life.
 
 ## Data
-The required data was obtained from two reliable websites- https://missingmigrants.iom.int/ and http://www.unhcr.org/ . From the first website, the most updated data of missing migrants in the world from January 2014 to March 2018 can be found. There is sufficient information for us to make detailed spatial visualizations, using data such as the number of dead and missing, filtered according to ethnicity, their location, and cause of death. In addition, there is information on migrant routes, albeit not all migrant deaths contain this data.
+The required data was obtained from two reliable websites- https://missingmigrants.iom.int/ and http://www.unhcr.org/ . From the first website, the most updated data of missing migrants in the world from January 2014 to March 2018 can be found. There is sufficient information for us to make detailed spatial visualizations, using data such as the number of dead and missing, filtered according to their geographical grouping, location, and cause of death. In addition, there is information on migrant routes, albeit not all migrant deaths contain this data.
 
-The second source of data, the UNHCR database, contains accurate geospatial information on the movement of refugees. It contains the locations from which refugees leave and enter various territories, as well as the number and categories of people making the aforementioned movement. By crossreferencing to the first data source, the two data sources can be joined, providing a more complete image of migrant movements, thus obtaining more informative data that will be useful for visualization.
+The second source of data, the UNHCR database, contains accurate geospatial information on the movement of refugees. It contains the locations from which refugees leave and enter various territories, as well as the number and categories of people making the aforementioned movement. By cross-referencing to the first data source, the two data sources can be joined, providing a more complete image of migrant movements, thus obtaining more informative data that will be useful for visualization.
 
 ## Analysis and Visualization
-The primary purpose of this project is to present, as accurately as possible, the best available data on the movement of migrants and, a global profile of hot zones and regional trends for migrant fatalities and disappearances. The project revolves around analysing data to understand human migration patterns, especially in the hot zones, to highlight the need to create safe passage for refugees, as opposed to the current perilous paths they take. This may be done by strengthening the capacity and preparedness of search and rescue operations in these hot zones.
+The primary purpose of this project is to present, as accurately as possible, the best available data on the movement of migrants and a global profile of hot zones and regional trends for migrant fatalities and disappearances. The project revolves around analysing data to understand human migration patterns, especially in the hot zones, to highlight the need to create safe passage for refugees, as opposed to the current perilous paths they take. This may be done by strengthening the capacity and preparedness of search and rescue operations in these hot zones.
 
 Our visualization methodology will be an infographic poster (see link down) that includes descriptive statistics and spatial maps to showcase interesting trends.
 
@@ -42,7 +42,7 @@ library(ggalluvial)
 ```
 
 # Data preprocessing
-We will process the data obtained from https://missingmigrants.iom.int/ into a useable format. We quickly did an initial visualization using QGIS to get a sense of the data and noticed some incorrect data points and will be filtered out in this step. 
+We will process the data obtained from https://missingmigrants.iom.int/ into a useable format. We quickly did an initial visualization using QGIS to get a sense of the data and noticed some incorrect data points which will be filtered out in this step. 
 ```{r preprocess, message=FALSE, warning=FALSE}
 unprocessed_events <- read_csv("MissingMigrants-Global-2018-04-07T23-25-35.csv")
 
@@ -65,7 +65,7 @@ map <- map + geom_point(aes(x=events$Longitude, y=events$Latitude) ,color="red",
 map <- map + xlab("LONGITUDE") + ylab("LATITUDE") + ggtitle("Reported Migrant Death and Missing Events: 2014-2018")
 map
 ```
-The plot reveals clusters in reported events of migrant missing and death cases around the Mediterranean, North African and US-Mexico regions. It is very strange to note that there are no migrant death/missing events reported around the South Eastern Indian Ocean closer to Austrailia and Papua New Guinea. We will address these issues in the conclusion section.
+The plot reveals clusters in reported events of missing or dead migrants around the Mediterranean, North African and US-Mexico regions. It is very strange to note that there are no migrant deaths/missing events reported around the South Eastern Indian Ocean closer to Australia and Papua New Guinea. We will address these issues in the conclusion.
 
 # Understanding initial statistics
 We will quantify the data based on different criteria to get useful insights.
@@ -112,7 +112,7 @@ Based on the preliminary descriptive statistics, it is clear that the Mediterran
 
 # Mediterranean region at a Glance
 We will quantify the migrant death and fatalities spatial data in the Mediterranean region to get some useful insights before proceeding to descriptive statistical study for this region. 
-```{r med_1, warning=FALSE }
+```{r med_1, warning=FALSE, message=FALSE}
 map <- ggmap(get_googlemap(center = 'mediterranean',zoom=4, maptype = "satellite"))
 
 med_events <- events %>%
@@ -134,9 +134,10 @@ map + geom_point(alpha = 0.4, aes(x=Longitude, y=Latitude, size=med_events$`Tota
 # Mediterranean - Understanding statistics
 We will classify and quantify the data based on different regions of the Mediterranean and different times of the year.
 ```{r med_2, warning=FALSE}
-# We used `factor(match(`Reported Month`, month.abb))` to order the months, but there might be a more elegant solution. We piped the data instead of doing x=factor(match()).
+# We used `factor(match(`Reported Month`, month.abb))` to order the months.
 med_events %>% 
-  ggplot(aes(x=factor(match(`Reported Month`, month.abb)))) + geom_bar() + facet_wrap(~`Migration Route`) + xlab("Reported Month")
+  mutate(month_number = match(`Reported Month`, month.abb)) %>%
+  ggplot(aes(x=factor(month_number))) + geom_bar() + facet_wrap(~`Migration Route`) + xlab("Reported Month")
 
 med_events %>% 
   ggplot(aes(x=`Reported Year`)) + geom_bar() + facet_wrap(~`Migration Route`)
@@ -146,22 +147,19 @@ med_events %>%
   ggplot(aes(x=Date)) + geom_histogram(binwidth=28) 
 ```
 
-You might have wondered why we are not focusing on time-series analysis (Based on years). The primary reason is that with time the tecchnology, awareness and methods used to report migrant death and missing events has increased. i.e.: Though we have more migrant death and missing events reported in 2015 compared to 2014, it does not mean that 2014 actually had less migrant death and missing events, but it is primarly because we have better methods and technology to track these events in 2015 compared to 2014. So time - series analysis will not yield correct insights. 
+You might have wondered why we are not focusing on time-series analysis (by year). The primary reason is that with time the technology, awareness and methods used to report migrant death and missing events has increased. i.e.: Though we have more migrant death and missing events reported in 2015 compared to 2014, it does not mean that 2014 actually had less migrant death and missing events, but it is primarily because we have better methods and technology to track these events in 2015 compared to 2014. So time-series analysis will not yield correct insights. 
 
-The useful information that can be obtained here is that the Central Mediterranean is the primary actor in Migrant deaths and missing toll. We will include spatial maps below to see this better.
+The useful information that can be obtained here is that the Central Mediterranean is the primary actor in migrant deaths and missing toll. We will include spatial maps below to see this better.
 ```{r message=FALSE, warning=FALSE}
-# Faceted by month, plot of total dead and missing
-# When exporting as png, use scale_size_continuous instead of scale_size_area() if the points are too small.
-# Faceted months not ordered properly.
-map + geom_point(alpha = 0.4, aes(x=Longitude, y=Latitude, size=med_events$`Total Dead and Missing`, colour="red"), data=med_events) + scale_size_area() + facet_wrap(~`Reported Month`)
+map + geom_point(alpha = 0.4, aes(x=Longitude, y=Latitude, size=med_events$`Total Dead and Missing`, colour="red"), data=med_events) + scale_size_area(name="Total dead and missing") + facet_wrap(~`Reported Month`) + scale_colour_discrete(name=NULL, breaks=NULL) 
 
-map + geom_point(alpha = 0.4, aes(x=Longitude, y=Latitude, size=med_events$`Total Dead and Missing`, colour="red"), data=med_events) + scale_size_area() + facet_wrap(~`Reported Year`)
+map + geom_point(alpha = 0.4, aes(x=Longitude, y=Latitude, size=med_events$`Total Dead and Missing`, colour="red"), data=med_events) + scale_size_area(name="Total dead and missing") + facet_wrap(~`Reported Year`) + scale_colour_discrete(name=NULL, breaks=NULL)
 ```
 
-
-# Try to find any trends in migrant flow and fatalities
-The data of missing migrants that we are using does not encode any information on the nationality of the victims. So we are not able to exclusively formulate any methodology to understand trends between country of origin and missing migrants. So we are making an assumption that, 
-Proportion of Fatalities where victims belong to country Z = Proportion of country Z asylum seekers in the EU. To give a concrete example, if 20% of asylum seekers in the EU are from Iraq, then 20% of people who die in the mediterrenean are Iraqis. 
+# An assumption
+The data of missing migrants that we are using does not contain any information on the nationality of the victims. So we are not able to exclusively formulate any methodology to understand trends between country of origin and missing migrants. So we are making an assumption that, 
+Proportion of fatalities where victims belong to country Z = proportion of country Z asylum seekers in the EU. 
+To give a concrete example, if 20% of asylum seekers in the EU are from Iraq, then we assume that 20% of people who die in the Mediterranean are Iraqis. 
 
 Based on the above assumption we are trying to visualize any trends in migrant flow and fatalities.
 
@@ -196,7 +194,7 @@ asylum_seekers.country[1:10,]
 ## Sankey diagrams as a means to understand Migrant flow 
 Sankey diagrams can create visual emphasis on major flows within our system, therefore we have chosen it to represent trends in migrant flows. 
 
-# Non- spatial representation of migrant flow
+## Non-spatial representation of migrant flow
 After preprocessing the asylum seekers data, we have identified the most popular origin and host countries and we will include some interesting statistics below. 
 ```{r, message=FALSE, warning=FALSE}
 asylum_seekers %>% 
@@ -265,7 +263,7 @@ asylum_seekers %>%
   arrange(desc(sumValue)) %>% 
   ggplot(aes(x = reorder(GEO, -sumValue), y = sumValue, fill=factor(GEO) )) +# factor makes it non continuous (categorical)
   geom_bar(stat="identity") + scale_fill_brewer(palette="Dark2") +
-  xlab("Destination") + ylab("Number of Asylum Seeker") +
+  xlab("Destination") + ylab("Number of asylum seekers") +
   ggtitle("Top 5 Asylum Seeking Destinations in the EU") +
   labs(fill = "Destination") +
   theme (axis.text.x = element_text(angle = 45, hjust = 1), plot.title = element_text(hjust = 0.5), legend.position = "none")
@@ -315,7 +313,7 @@ asylum_seekers %>%
 
 
 # Spatial representation of migrant flow
-We will understand the migrant flow by incorporating the underlying geographical layer in this section. First we extract our filtered data and we create a graph from it. Do note that Edge.csv and Nodes.csv were manually created by us. In this part we will walkthrough on how we created our Sankey diarams and we will show a concrete example as well(Germany)
+We will understand the migrant flow by incorporating the underlying geographical layer in this section. First we extract our filtered data and we create a graph from it. Do note that Edge.csv and Nodes.csv were manually created by us. In this part we will walk through on how we created our Sankey diagrams and we will show a concrete example as well(Germany).
 ```{r, message=FALSE, warning=FALSE}
 edges <- read.csv("Edge.csv", sep=";")
 nodes <- read.csv("Nodes.csv", sep=";")
@@ -351,7 +349,7 @@ subGraph %>%
   geom_edge_diagonal(aes(width=Value/60, alpha=0.4), 
                      end_cap=rectangle(20,8, "mm"), 
                      start_cap=rectangle(20,3, "mm")) + 
-  xlim(c(-20,50)) + ylim(c(0,70)) + scale_edge_width_identity() + theme_void()
+  xlim(c(-20,50)) + ylim(c(0,70)) + scale_edge_width_identity() + theme_void() + theme(legend.position="none")
 
 ```
 
@@ -361,11 +359,11 @@ worldMap <- get_googlemap(center=c(15,35),zoom=3,style="element:labels|visibilit
 ggmap(worldMap, base_layer=ggraph(subGraph, layout='auto')) +  
   geom_node_text(aes(x=x, y=y, label=name), size=3, colour="red") +
   geom_edge_diagonal(aes(width=Value/60, alpha=0.4), colour="white") + 
-  xlim(c(-20,50)) + ylim(c(0,70)) + scale_edge_width_identity() + theme_void() 
+  xlim(c(-20,50)) + ylim(c(0,70)) + scale_edge_width_identity() + theme_void() + theme(legend.position="none")
 ```
 
 Now to obtain multiple plots, we can use a for loop to change the filtered country every iteration.
-We also make use of ggsave to save our plots. You can find all the plots at https://github.com/keshik6/Perilous_Journey_to_Better_Lands .These sankey diagrams are shown in the poster as well
+We also make use of ggsave to save our plots. You can find all the plots at https://github.com/keshik6/Perilous_Journey_to_Better_Lands. The sankey diagrams are shown in the poster as well.
 ```{r warning=FALSE, message=FALSE}
 # This loop will create the sankey diagrams without the underlying spatial layer. The code for this is included as a reference only. The proper final plots will be created in the following part and saved.
 for (i in arrangedNodes$Country) {
@@ -378,7 +376,7 @@ for (i in arrangedNodes$Country) {
       geom_edge_diagonal(aes(width=Value/60, alpha=0.4), 
                          end_cap=rectangle(20,8, "mm"), 
                          start_cap=rectangle(20,3, "mm")) + 
-      xlim(c(-20,50)) + ylim(c(0,70)) + scale_edge_width_identity() + theme_void()
+      xlim(c(-20,50)) + ylim(c(0,70)) + scale_edge_width_identity() + theme_void() + theme(legend.position="none")
   )
 }
 
@@ -390,16 +388,15 @@ for (i in arrangedNodes$Country) {
   j <-ggmap(worldMap, base_layer=ggraph(subGraph, layout='auto')) +  
      geom_node_text(aes(x=x, y=y, label=name), size=3, colour="white") +
      geom_edge_diagonal(aes(width=Value/60, alpha=0.4, colour="red")) + 
-     xlim(c(-20,50)) + ylim(c(0,70)) + scale_edge_width_identity() + theme_void() 
+     xlim(c(-20,50)) + ylim(c(0,70)) + scale_edge_width_identity() + theme_void() + theme(legend.position="none") 
   ggsave(str_c("Maps_hybrid\\",i, ".pdf"), device="pdf",width=10,height=10,plot=j)
-  
 }
 ```
 
-If you observe these Sankey diagrams for migrant flow through the mediterrenean sea its quite interesting to note that the thickness/ visual emphasis on the flow of the arrows that end up in the mediterrenean sea is very minute. That is the number of fatalities per country normalized based on the total number of people of the particular country who successfully seek asylum in the EU is insignificant. Our analysis becomes very interesting at this point. Though the above proportions appear very small numerically we have more than 22500 migrant death and missing toll from 2014 - 2018 in the Mediterrenean region. Do the authorities and governments understand the seriousness of this situation or does the percentages behind being small allow them to consider rescue operations as trivial relative to the investment of money and labour that these operations incur.
+If you observe these Sankey diagrams for migrant flow through the Mediterranean Sea it is quite interesting to note that the thickness/visual emphasis on the flow of the arrows that end up in the Mediterranean Sea is very minute. That is the number of fatalities per country normalized based on the total number of people of the particular country who successfully seek asylum in the EU is insignificant. Our analysis becomes very interesting at this point. Though the above proportions appear very small numerically we have more than 22500 migrant death and missing toll from 2014 - 2018 in the Mediterranean region. Do the authorities and governments understand the seriousness of this situation or does the percentages behind being small allow them to consider rescue operations as trivial relative to the investment of money and labour that these operations incur?
 
 
-# Mediterrenean Search and Rescue(SAR) Operations
+# Mediterranean Search and Rescue(SAR) Operations
 ```{r, message=FALSE, warning=FALSE}
 SAR = data.frame(read_excel("SAR Naval Operation.xlsx"))
 SAR %>% 
@@ -413,7 +410,7 @@ SAR %>%
   labs(fill = "Year")
 ```
 
-It is quite useful to visualize the number of rescued people by different Naval Units in the Meditteranean Sea from 2014-2018.
+It is quite useful to visualize the number of rescued people by different Naval Units in the Mediterranean Sea from 2014-2018.
 ```{r, message=FALSE, warning=FALSE}
 ggplot(data = SAR, aes(x = Naval.Unit, y = (Rescued.People), fill = factor(Year))) +   
   geom_bar(position="dodge", stat="identity") + xlab("Naval Unit") + ylab("Number of Rescued People") +
@@ -422,11 +419,11 @@ ggplot(data = SAR, aes(x = Naval.Unit, y = (Rescued.People), fill = factor(Year)
   labs(fill = "Year")
 ```
 
-There is a large drop in the number of rescued people in the mediterenean from 2016 to 2017. We do not have sufficient evidance to explain the reasoning behind this.
+There is a large drop in the number of rescued people in the Mediterranean from 2016 to 2017. We do not have sufficient evidence to explain the reasoning behind this.
 
 # Conclusion
 In the requirement formulation phase of the project, one of our key deliverable was developing predictive models of hot zones by analyzing the shifts in hot zones with time from the available data. But due to insufficient data and limited expertise on the topic we were not able to complete this requirement. So our requirements were reframed to make the project rich in visualization and limit the scope of our analysis.
 
-We would like to reiterate some interesting insights, findings and concerns at this point. First and foremost, it was very strange and surprising to note that no data on migrant death and missing cases were reported in the South Eastern Indian Ocean region (Around Australia and Papua New Guinea). This is something that needs to be addressed by the respective authorities and governments. Next interesting observation based on our assumption is the number of fatalities per country normalized based on the total number of people of the particular country who successfully seek asylum in the EU being insignificant. This can potentially lead to the seriousness of this issue being misunderstood by the respective authorities and governments. Maybe this could be the reason for the number of people rescued in the Mediterrenean (by Navel Units) dropping by about 60% from 2016 to 2017. The rest of the observations do not result in any concrete conclusions but are able to explain us the seriousness of the migrant crisis in the mediterrenean region.
+We would like to reiterate some interesting insights, findings and concerns at this point. First and foremost, it was very strange and surprising to note that no data on migrant death and missing cases were reported in the South Eastern Indian Ocean region (around Australia and Papua New Guinea). This is something that needs to be addressed by the respective authorities and governments. Next interesting observation based on our assumption is the number of fatalities per country normalized based on the total number of people of the particular country who successfully seek asylum in the EU is insignificant. This can potentially lead to the seriousness of this issue being misunderstood by the respective authorities and governments. This could be the reason for the number of people rescued in the Mediterranean (by Naval Units) dropping by about 60% from 2016 to 2017. The rest of the observations do not result in any concrete conclusions but are able to explain us the seriousness of the migrant crisis in the Mediterranean region.
 
 Concluding, we appreciate the opportunity and we look forward to extend our project and create interactive Sankey diagrams to visualize migrant flow in the near future.
